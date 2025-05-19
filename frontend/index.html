@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Text-to-Image Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      text-align: center;
+      padding: 50px;
+    }
+    h1 {
+      color: #343a40;
+    }
+    input[type="text"] {
+      width: 60%;
+      padding: 12px 20px;
+      margin: 20px 0;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:disabled {
+      background-color: #6c757d;
+    }
+    #status {
+      margin: 20px;
+      font-style: italic;
+    }
+    #result {
+      max-width: 512px;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Text-to-Image Generator</h1>
+  <input type="text" id="prompt" placeholder="Enter a description...">
+  <br>
+  <button id="generateBtn" onclick="generateImage()">Generate</button>
+  <p id="status"></p>
+  <img id="result" src="" alt="Generated Image">
+
+  <script>
+    async function generateImage() {
+      const promptInput = document.getElementById("prompt");
+      const statusText = document.getElementById("status");
+      const resultImg = document.getElementById("result");
+      const button = document.getElementById("generateBtn");
+
+      const prompt = promptInput.value.trim();
+      if (!prompt) {
+        statusText.innerText = "Please enter a description.";
+        return;
+      }
+
+      button.disabled = true;
+      statusText.innerText = "Generating image, please wait...";
+      resultImg.style.display = "none";
+
+      try {
+        const response = await fetch("http://localhost:8000/generate/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: prompt })
+        });
+
+        if (!response.ok) throw new Error("Server error");
+
+        const data = await response.json();
+        const imageUrl = "http://localhost:8000/image?" + new Date().getTime();
+        resultImg.src = imageUrl;
+        resultImg.style.display = "block";
+        statusText.innerText = "Image generated!";
+      } catch (err) {
+        console.error(err);
+        statusText.innerText = "An error occurred while generating the image.";
+      } finally {
+        button.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
